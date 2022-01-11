@@ -1,0 +1,101 @@
+version: 2
+jobs:
+  node/test:
+    docker:
+    - image: cimg/node:13.11.0
+    steps:
+    - checkout
+    - run:
+        command: |
+          if [ ! -f "package.json" ]; then
+            echo
+            echo "---"
+            echo "Unable to find your package.json file. Did you forget to set the app-dir parameter?"
+            echo "---"
+            echo
+            echo "Current directory: $(pwd)"
+            echo
+            echo
+            echo "List directory: "
+            echo
+            ls
+            exit 1
+          fi
+        name: Checking for package.json
+        working_directory: ~/project
+    - run:
+        command: |
+          if [ -f "package-lock.json" ]; then
+            echo "Found package-lock.json file, assuming lockfile"
+            ln package-lock.json /tmp/node-project-lockfile
+          elif [ -f "npm-shrinkwrap.json" ]; then
+            echo "Found npm-shrinkwrap.json file, assuming lockfile"
+            ln npm-shrinkwrap.json /tmp/node-project-lockfile
+          elif [ -f "yarn.lock" ]; then
+            echo "Found yarn.lock file, assuming lockfile"
+            ln yarn.lock /tmp/node-project-lockfile
+          fi
+          ln package.json /tmp/node-project-package.json
+        name: Determine lockfile
+        working_directory: ~/project
+    - restore_cache:
+        keys:
+        - node-deps-{{ arch }}-v1-{{ .Branch }}-{{ checksum "/tmp/node-project-package.json" }}-{{ checksum "/tmp/node-project-lockfile" }}
+        - node-deps-{{ arch }}-v1-{{ .Branch }}-{{ checksum "/tmp/node-project-package.json" }}-
+        - node-deps-{{ arch }}-v1-{{ .Branch }}-
+    - run:
+        command: "if [[ ! -z \"\" ]]; then\n  echo \"Running override package installation command:\"\n  \nelse\n  npm ci\nfi\n"
+        name: Installing NPM packages
+        working_directory: ~/project
+    - save_cache:
+        key: node-deps-{{ arch }}-v1-{{ .Branch }}-{{ checksum "/tmp/node-project-package.json" }}-{{ checksum "/tmp/node-project-lockfile" }}
+        paths:
+        - ~/.npm
+    - run:
+        command: npm run test:cov
+        name: Run NPM Tests
+        working_directory: ~/project
+    - run:
+        command: |
+          family=$(uname -s | tr '[:upper:]' '[:lower:]')
+          os="windows"
+          [[ $family == "darwin" ]] && os="macos"
+          [[ $family == "linux" ]] && os="linux"
+          echo "Detected ${os}"
+          echo "export os=${os}" >> $BASH_ENV
+
+          filename="codecov"
+          [[ $os == "windows" ]] && filename+=".exe"
+          echo "export filename=${filename}" >> $BASH_ENV
+          [[ $os == "macos" ]] && brew install gpg
+          curl -Os "https://uploader.codecov.io/latest/${os}/${filename}"
+        name: Download Codecov Uploader
+        when: always
+    - run:
+        command: |
+          curl https://keybase.io/codecovsecurity/pgp_keys.asc | gpg --no-default-keyring --import # One-time step
+          curl -Os "https://uploader.codecov.io/latest/${os}/${filename}.SHA256SUM"
+          curl -Os "https://uploader.codecov.io/latest/${os}/${filename}.SHA256SUM.sig"
+          gpg --verify $filename.SHA256SUM.sig $filename.SHA256SUM
+          shasum -a 256 -c $filename.SHA256SUM || sha256sum -c $filename.SHA256SUM
+        name: Validate Codecov Uploader
+    - run:
+        command: |
+          chmod +x $filename
+          args=()
+          [[ -n "" ]] && args+=( "-f " )
+          [[ -n "" ]] && args+=( "" )
+          curl -H "Accept: application/json" "https://uploader.codecov.io/${os}/latest" | grep -o '\"version\":\"v[0-9\.\_]\+\"' | head -1
+          ./$filename \
+            -Q "codecov-circleci-orb-3.1.0" \
+            -t "${CODECOV_TOKEN}" \
+            -n "${CIRCLE_BUILD_NUM}" \
+            -F "" \
+            ${args[@]}
+        name: Upload Coverage Results
+workflows:
+  upload-to-codecov:
+    jobs:
+    - node/test
+  version: 2
+
