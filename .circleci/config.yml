@@ -52,7 +52,7 @@ jobs:
         paths:
         - ~/.npm
     - run:
-        command: npm run test
+        command: npm run test:cov
         name: Run NPM Tests
         working_directory: ~/project
     - run:
