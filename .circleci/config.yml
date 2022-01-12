@@ -52,8 +52,16 @@ jobs:
           paths:
             - ~/.npm
       - run:
-          command: npm install
+          command: npm install && npm i
           name: Install
+      - run:
+          command: |
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "======"
+              done
+          background: true
       - run:
           command: npm run test:cov
           name: Run NPM Tests
