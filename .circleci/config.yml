@@ -52,7 +52,7 @@ jobs:
           paths:
             - ~/.npm
       - run:
-          command: npm install && npm i @nestjs/common@^7.0.9 --save-dev
+          command: npm install && npm i @nestjs/common@^7.0.9 @nestjs/core@^7.0.9 --save-dev  
           name: Install
       - run:
           command: npm run test:cov
