@@ -98,4 +98,3 @@ workflows:
     jobs:
     - node/test
   version: 2
-
