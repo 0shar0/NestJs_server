@@ -52,6 +52,9 @@ jobs:
           paths:
             - ~/.npm
       - run:
+          command: npm install
+          name: Install
+      - run:
           command: npm run test:cov
           name: Run NPM Tests
           working_directory: ~/project
