@@ -2,7 +2,7 @@ version: 2
 jobs:
   node/test:
     docker:
-      - image: cimg/node:16.13.2
+      - image: cimg/node:14.0.0
     steps:
       - checkout
       - run:
@@ -54,14 +54,6 @@ jobs:
       - run:
           command: npm install
           name: Install
-      - run:
-          command: |
-            while true; do
-              sleep 5
-              ps auxwwf
-              echo "======"
-              done
-          background: true
       - run:
           command: npm run test:cov
           name: Run NPM Tests
