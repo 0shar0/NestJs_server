@@ -1,13 +1,13 @@
 version: 2
 jobs:
   node/test:
-    docker:
-      - image: cimg/node:13.11.0
     parameters:
     max-old-space-size:
       default: 7000
       description: The amount of memory to use in max_old_space_size.
       type: integer
+    docker:
+      - image: cimg/node:13.11.0
     steps:
       - checkout
       - run:
