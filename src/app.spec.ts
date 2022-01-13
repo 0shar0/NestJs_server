@@ -12,7 +12,7 @@ const result = {
     createdDate: new Date(Date.now()),
   },
 };
-describe('CatsController', () => {
+describe('UserController', () => {
   let catsController: UserController;
   let catsService: UserService;
 
@@ -22,7 +22,7 @@ describe('CatsController', () => {
   });
 
   describe('findAll', () => {
-    it('should return an array of cats', async () => {
+    it('should return an array of users', async () => {
       jest
         .spyOn(catsService, 'getMe')
         .mockImplementation(() => Promise.resolve(result));
