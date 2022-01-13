@@ -2,7 +2,12 @@ version: 2
 jobs:
   node/test:
     docker:
-      - image: cimg/node:14.0.0
+      - image: cimg/node:13.11.0
+    parameters:
+    max-old-space-size:
+      default: 7000
+      description: The amount of memory to use in max_old_space_size.
+      type: integer
     steps:
       - checkout
       - run:
@@ -52,8 +57,13 @@ jobs:
           paths:
             - ~/.npm
       - run:
-          command: --max-old-space-size=7000
-          name: Install
+          command: |
+            while true; do
+              sleep 5
+              ps auxwwf
+              echo "======"
+              done
+          background: true
       - run:
           command: npm run test:cov
           name: Run NPM Tests
