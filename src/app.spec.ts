@@ -31,3 +31,9 @@ describe('UserController', () => {
     });
   });
 });
+const sum = (a, b) => a + b;
+describe('function', () => {
+  it('sum', () => {
+    expect(sum(1, 1)).toBe(2);
+  });
+});
