@@ -52,7 +52,7 @@ jobs:
           paths:
             - ~/.npm
       - run:
-          command: npm install
+          command: --max-old-space-size=7000
           name: Install
       - run:
           command: npm run test:cov
